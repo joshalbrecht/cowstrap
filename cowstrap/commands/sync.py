@@ -1,7 +1,7 @@
 
 import cowstrap.actions.bootstrap
 import cowstrap.actions.synchronize
-import cowstrap.commands
+import cowstrap.commands.command
 
 class Sync(cowstrap.commands.command.Command):
     """

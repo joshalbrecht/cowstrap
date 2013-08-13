@@ -26,7 +26,7 @@ class Provider(object):
         :returns: True iff the machine exists in the machine dictionary
         :rtype:   boolean
         """
-        raise NotImplementedError()
+        return name in self._machine_dict
 
     def is_running(self, name):
         """
@@ -35,7 +35,7 @@ class Provider(object):
         :returns: True iff the machine is running
         :rtype:   boolean
         """
-        raise NotImplementedError()
+        return self._is_running(self._get_machine(name))
 
     # pylint: disable=R0913
     def create(self, name, operating_system, machine_type, user_name="cowstrap",

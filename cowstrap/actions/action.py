@@ -12,7 +12,7 @@ class Action(object):
 
     def __init__(self, generated_fields):
         self.generated_fields = generated_fields
-        self._value_cache = UNSET
+        self._value_cache = {}
 
     def register(self, parser):
         """

@@ -1,4 +1,6 @@
 
+import cowstrap.providers.local
+import cowstrap.providers.aws
 import cowstrap.actions.action
 
 class Bootstrap(cowstrap.actions.action.Action):
@@ -50,7 +52,7 @@ class Bootstrap(cowstrap.actions.action.Action):
             provider = arguments.provider or config.provider or None
             if provider == None:
                 provider = self.prompt_user("provider", default=LocalProvider(), options=self._possible_providers)
-            provider.configure(config, argument, previous_fields)
+            provider.configure(config, arguments, previous_fields)
 
         else:
             #is this machine in our machine dictionary?
