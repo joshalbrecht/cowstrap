@@ -1,4 +1,10 @@
 
+import types
+import decimal
+
+import cowstrap
+import cowstrap.errors
+
 class Action(object):
     """
     Represents a state transition that can be applied to a machine.
@@ -8,11 +14,21 @@ class Action(object):
     :type generated_fields: set(strings)
     :ivar _value_cache: map from variable name -> previously used value or None
     :type _value_cache: map(string, string)
+    :ivar _prompt_type_handlers: a mapping to handlers of various input types
+    :type _prompt_type_handlers: dict(type, func(string, object))
     """
 
     def __init__(self, generated_fields):
         self.generated_fields = generated_fields
         self._value_cache = {}
+        self._prompt_type_handlers = {
+            types.BooleanType: self._prompt_for_boolean,
+            types.StringType: self._prompt_for_string,
+            types.UnicodeType: self._prompt_for_string,
+            types.ListType: self._prompt_for_sequence,
+            types.TupleType: self._prompt_for_sequence,
+            decimal.Decimal: self._prompt_for_decimal,
+        }
 
     def register(self, parser):
         """
@@ -40,26 +56,250 @@ class Action(object):
         """
         raise NotImplementedError()
 
-    # pylint: disable=R0201
-    def prompt_user(self, var_name, default_value=None):
-        """
-        :param var_name: the name of the variable to request from the user
-        :type  var_name: string
-        :param default_value: use this if there is no cached previous value
-        :type  default_value: string
-        :returns: the value input by the user
-        :rtype:   string
-        """
-        prev_value = default_value
-        if var_name in self._value_cache:
-            prev_value = self._value_cache[var_name]
-        print("No value found for {}. Please set a value [{}]: "
-            .format(var_name, prev_value))
-        return raw_input()
-
     def perform(self):
         """
         Execute the action.
         """
         raise NotImplementedError()
+
+    # pylint: disable=R0201
+    def prompt_user(self, var_name, default, options=None):
+        """
+        :param var_name: the name of the variable to request from the user
+        :type  var_name: string
+        :param default: use this if there is no cached previous value. This is
+        required so that we can guess the type
+        :type  default: object
+        :param options: mapping of names to possible acceptable values
+        :type  options: dict(string, object)
+        :returns: the value input by the user
+        :rtype:   string
+        """
+
+        #input with options is handled specially:
+        if options != None:
+            if var_name in self._value_cache:
+                prev_value = self._value_cache[var_name]
+            else:
+                prev_value = default
+            def prompt():
+                """Ask the user for input"""
+                self._prompt_for_choice(var_name, prev_value, options)
+            handler = prompt
+
+        #otherwise use one of the typed prompt functions depending on default
+        else:
+            #figure out what type of data we want
+            value_type = type(default)
+            assert value_type in (types.BooleanType, types.StringType,
+            types.UnicodeType, types.TupleType, types.ListType,
+            decimal.Decimal), \
+            "Cannot handle input of {0} types!".format(value_type)
+
+            #check if we have a previous value to use as a default at the prompt
+            if var_name in self._value_cache:
+                prev_value = self._value_cache[var_name]
+                try:
+                    converted_value = self._convert_input_to_type\
+                        (prev_value, value_type, default)
+                    prev_value = converted_value
+                except cowstrap.errors.BadInputError, e:
+                    cowstrap.log.warn(
+                        "Could not convert previous value {0} to {1} because "+\
+                        "{2}, ignoring", prev_value, value_type, e)
+                    prev_value = default
+            else:
+                prev_value = default
+            def prompt():
+                """Ask the user for input"""
+                self._prompt_type_handlers[value_type](var_name, prev_value)
+            handler = prompt
+
+        #continually prompt the user until they provide something valid
+        while True:
+            try:
+                value = handler()
+                break
+            except cowstrap.errors.BadInputError, e:
+                cowstrap.log.warn(str(e))
+        return value
+
+    def _convert_input_to_type(self, value, value_type, default=None):
+        """
+        Convert a value from the user into value_type
+
+        :param value: the value that was input
+        :type  value: string
+        :param value_type: the type that the value should be converted to
+        :type  value_type: type
+        :param default: the default value. Definitely of type value_type. Only
+        used for figuring out the type inside of a list
+        :type  default: {value_type}
+        """
+        if value_type == types.BooleanType:
+            if value.lower() in ('y', 'yes', 't', 'true'):
+                return True
+            elif value.lower() in ('n', 'no', 'f', 'false'):
+                return False
+            else:
+                raise cowstrap.errors.BadInputError(\
+                    "Please enter true or false")
+        elif value_type == decimal.Decimal:
+            try:
+                return decimal.Decimal(value)
+            except Exception:
+                raise cowstrap.errors.BadInputError("Badly formatted number")
+        elif value_type in (types.StringType, types.UnicodeType):
+            return value
+        elif value_type in (types.ListType, types.TupleType):
+            #use default to introspect the type within the list
+            type_set = set()
+            for default_entry in default:
+                type_set.add(type(default_entry))
+            assert len(type_set == 1), "Default list contained {0} types ({1})"\
+              .format(len(type_set), type_set)
+            inner_type = list(type_set)[0]
+            converted_list = []
+            for entry in value.split(','):
+                result = self._convert_input_to_type(entry, inner_type, \
+                                                     default[0])
+                converted_list.append(result)
+            if value_type == types.TupleType:
+                return tuple(converted_list)
+            return converted_list
+        else:
+            assert False, "Unknown value type: {0}".format(value_type)
+
+    def _prompt_for_choice(self, var_name, prev_value, options):
+        """
+        Prompt the user to select a choice from a list of options
+
+        :param var_name: the name of the variable for the user to set
+        :type  var_name: string
+        :param prev_value: the value entered lasts run for this variable, or
+        the default, if nothing was set last run
+        :type  prev_value: string
+        :param options: mapping of names to possible acceptable values
+        :type  options: dict(string, object)
+        :returns: the value from the user (one of the values of options)
+        :rtype:   object
+        """
+        if len(options) == 1:
+            return options.values()[0]
+        prev_choice = None
+        choice_num = 1
+        choices = []
+        for key, value in options.viewitems():
+            if key == prev_value:
+                prev_choice = choice_num
+            choices.append(choice_num, key, value)
+            choice_num += 1
+        choice_string = "\n".join(["{0}. {1}".format(choice[0], choice[1]) \
+                                   for choice in choices])
+        default_string = ''
+        if prev_choice != None:
+            default_string = " [default {0}]".format(prev_choice)
+        print("Please select a choice for {0}{1}: \n{2}\n"\
+              .format(var_name, default_string, choice_string))
+        user_input = self._get_input().trim()
+        if user_input == '':
+            if prev_choice != None:
+                choice_idx = prev_choice - 1
+            else:
+                raise cowstrap.errors.BadInputError("You must select a choice!")
+        else:
+            try:
+                choice_idx = int(user_input) - 1
+            except Exception:
+                raise cowstrap.errors.BadInputError("Select a number")
+        if choice_idx < 0 or choice_idx >= len(choices):
+            raise cowstrap.errors.BadInputError(
+                "Please select a number between 1 and {0}"
+                .format(len(choices)))
+        return choices[choice_idx][2]
+
+    def _prompt_for_sequence(self, var_name, prev_value):
+        """
+        Prompt the user to input a list or tuple.
+
+        :param var_name: the name of the variable for the user to set
+        :type  var_name: string
+        :param prev_value: the value entered lasts run for this variable, or
+        the default, if nothing was set last run
+        :type  prev_value: list or tuple
+        :returns: the value from the user
+        :rtype:   tuple
+        """
+        assert len(prev_value) > 0, "Unsure how to handle empty list--" + \
+            "what type can it contain?"
+        default_string = ','.join([str(x) for x in prev_value])
+        print("No value found for {0}. Please set a value [defaults to {1}] " +\
+              "(delimit entries with ','): "
+            .format(var_name, default_string))
+        user_input = self._get_input().trim()
+        if user_input == '':
+            return prev_value
+        return self._convert_input_to_type(user_input, types.TupleType)
+
+    def _prompt_for_decimal(self, var_name, prev_value):
+        """
+        Prompt the user to input a number.
+
+        :param var_name: the name of the variable for the user to set
+        :type  var_name: string
+        :param prev_value: the value entered lasts run for this variable, or
+        the default, if nothing was set last run
+        :type  prev_value: decimal.Decimal
+        :returns: the value from the user
+        :rtype:   decimal.Decimal
+        """
+        return self._default_prompt(var_name, prev_value, decimal.Decimal)
+
+    def _prompt_for_boolean(self, var_name, prev_value):
+        """
+        Prompt the user to input a boolean
+
+        :param var_name: the name of the variable for the user to set
+        :type  var_name: string
+        :param prev_value: the value entered lasts run for this variable, or
+        the default, if nothing was set last run
+        :type  prev_value: boolean
+        :returns: the value from the user
+        :rtype:   boolean
+        """
+        return self._default_prompt(var_name, prev_value, types.BooleanType)
+
+    def _prompt_for_string(self, var_name, prev_value):
+        """
+        Prompt the user to input a string.
+
+        :param var_name: the name of the variable for the user to set
+        :type  var_name: string
+        :param prev_value: the value entered lasts run for this variable, or
+        the default, if nothing was set last run
+        :type  prev_value: string
+        :returns: the value from the user
+        :rtype:   string
+        """
+        return self._default_prompt(var_name, prev_value, types.StringType)
+
+    def _default_prompt(self, var_name, prev_value, value_type):
+        """
+        Simple prompt for simple variable types
+        """
+        print("No value found for {0}. Please set a value [defaults to {1}]: "
+            .format(var_name, prev_value))
+        user_input = self._get_input().trim()
+        if user_input == "":
+            return prev_value
+        return self._convert_input_to_type(user_input, value_type)
+
+    def _get_input(self):
+        """
+        This is only a function so that it can be overriden for testing
+
+        :returns: whatever the user types
+        :rtype:   string
+        """
+        return raw_input()
 

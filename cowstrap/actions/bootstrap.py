@@ -36,14 +36,15 @@ class Bootstrap(cowstrap.actions.action.Action):
         #figure out if we're trying to make a new machine or use an existing one
         if self._allow_new:
             #did they specify any options about an existing machine?
-            if arguments.host or arguments.machine_name or arguments.machine_id:
+            if arguments.host or arguments.machine_name:
                 should_create_new_machine = False
             #did they specify any options about creating a new machine?
-            elif arguments.provider or arguments.os:
+            elif arguments.provider or arguments.os or arguments.machine_type:
                 should_create_new_machine = True
             else:
                 #prompt the user
-                should_create_new_machine = self.prompt_user("should_create_new_machine", default=True)
+                should_create_new_machine = self.prompt_user(\
+                    "should_create_new_machine", default=True)
         else:
             should_create_new_machine = False
 
@@ -51,7 +52,10 @@ class Bootstrap(cowstrap.actions.action.Action):
             #figure out the provider and let it handle the rest
             provider = arguments.provider or config.provider or None
             if provider == None:
-                provider = self.prompt_user("provider", default=LocalProvider(), options=self._possible_providers)
+                provider = self.prompt_user(
+                    "provider",
+                    default=cowstrap.providers.local.LocalProvider(),
+                    options=self._possible_providers)
             provider.configure(config, arguments, previous_fields)
 
         else:

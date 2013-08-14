@@ -1,4 +1,11 @@
 
+class PleaseImplementForMe(NotImplementedError):
+    """
+    The usage of this error signals that this code should be implemented.
+
+    Please create an implementation and send me a pull request :)
+    """
+
 class CowstrapError(Exception):
     """
     Base class for all errors from Cowstrap
@@ -19,3 +26,9 @@ class UndefinedMachineError(CowstrapError):
     def __init__(self, description="Machine was not defined", **kwargs):
         CowstrapError.__init__(self, description, **kwargs)
 
+class BadInputError(CowstrapError):
+    """
+    Raised if the user inputs something of the wrong type or otherwise wrong
+    """
+    def __init__(self, description="Bad input", **kwargs):
+        CowstrapError.__init__(self, description, **kwargs)
