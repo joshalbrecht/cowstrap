@@ -1,7 +1,7 @@
 
 import cowstrap.providers.provider
 
-class Ec2Provider(cowstrap.providers.provider.Provider):
+class AwsProvider(cowstrap.providers.provider.Provider):
     """
     A simple interface to the EC2 service
 

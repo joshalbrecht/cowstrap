@@ -22,7 +22,7 @@ class Bootstrap(cowstrap.actions.action.Action):
         self._allow_new = allow_new
         self._possible_providers = [
             cowstrap.providers.local.LocalProvider(),
-            cowstrap.providers.ec2.Ec2Provider(),
+            cowstrap.providers.ec2.AwsProvider(),
             #TODO: would be nice to have a Vmware provider so that I could suspend/resume machines, or docker or vagrant providers
         ]
 
