@@ -1,4 +1,6 @@
 
+import os
+
 class Config(object):
     """
     Represents all persistent configuration
@@ -7,18 +9,25 @@ class Config(object):
     :type config_path: string
     """
 
-    def __init__(self):
-        self.config_path = None
+    def __init__(self, config_path):
+        self.config_path = config_path
+        if os.path.exists(config_path):
+            self.load()
 
-    # pylint: disable=R0201
-    def register(self, parser):
+    def has_data(self, name):
+        raise NotImplementedError()
+
+    def get_data(self, name):
+        raise NotImplementedError()
+
+    def load(self):
         """
-        Set up the command line parser to interact with configuration values
-
-        :param parser: the subparser to configure
-        :type  parser: argparse.ArgumentParser
+        Load the configuration from disk.
         """
-        parser.add_argument('-x', type=int, default=1)
-        parser.add_argument('y', type=float)
-        parser.set_defaults(func=foo)
+        raise NotImplementedError()
 
+    def save(self):
+        """
+        Save the configuration to disk.
+        """
+        raise NotImplementedError()

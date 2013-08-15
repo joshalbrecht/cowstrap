@@ -1,4 +1,6 @@
 
+import boto
+
 import cowstrap.providers.provider
 
 class AwsProvider(cowstrap.providers.provider.Provider):
