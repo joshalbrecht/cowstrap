@@ -133,17 +133,9 @@ class Input(object):
 
             #ask the user what they want to do about the missing value
             value = self._values[name]
-            while True:
-                user_input = value.prompt()
-                try:
-                    converted_data = value.to_type(user_input)
-                    value.validate(converted_data)
-                except cowstrap.errors.ValidationError, e:
-                    print("Invalid input: {}".format(str(e)))
-                    continue
-                result = converted_data
-                self._user_input[name] = user_input
-                break
+            user_input = value.prompt()
+            result = value.to_type(user_input)
+            self._user_input[name] = user_input
 
         #persist the value if appropriate
         if result != None and persist:
