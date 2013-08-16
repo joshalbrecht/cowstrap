@@ -5,16 +5,18 @@ import ConfigParser
 import cowstrap
 import cowstrap.errors
 
+SECTION = "cowstrap"
+
 class Config(object):
     """
     Represents all persistent configuration
 
-    :ivar config_path: the path to the configuration file (may or may not exist)
-    :type config_path: string
+    :ivar path: the path to the configuration file (may or may not exist)
+    :type path: string
     """
 
-    def __init__(self, config_path):
-        self.config_path = config_path
+    def __init__(self, path):
+        self.path = path
         self._data = {}
         self._load()
 
@@ -56,15 +58,15 @@ class Config(object):
         """
         Load the configuration from disk.
         """
-        if not os.path.exists(self.config_path):
-            cowstrap.log.warn("Could not load config from " + self.config_path)
+        if not os.path.exists(self.path):
+            cowstrap.log.warn("Could not load config from " + self.path)
             return
         try:
             config = ConfigParser.RawConfigParser()
-            config.read(self.config_path)
+            config.read(self.path)
             new_data = {}
-            for key in config.options(ConfigParser.DEFAULTSECT):
-                new_data[key] = config.get(ConfigParser.DEFAULTSECT, key)
+            for key in config.options(SECTION):
+                new_data[key] = config.get(SECTION, key)
             self._data = new_data
         except EnvironmentError, e:
             cowstrap.log.warn("Could not load file: {0}", e)
@@ -75,9 +77,10 @@ class Config(object):
         """
         try:
             config = ConfigParser.RawConfigParser()
+            config.add_section(SECTION)
             for key, value in self._data.viewitems():
-                config.set(ConfigParser.DEFAULTSECT, key, value)
-            with open(self.config_path, 'wb') as out_file:
+                config.set(SECTION, key, value)
+            with open(self.path, 'wb') as out_file:
                 config.write(out_file)
         except EnvironmentError, e:
             cowstrap.log.warn("Could not save to file: {0}", e)
