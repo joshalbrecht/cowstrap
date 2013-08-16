@@ -193,7 +193,7 @@ Please provide a value: """.format(self.name, self.value_type, summary_line,
                 help_line, default_line, choice_line, self._argument_name,
                 example_value, self.name, example_value)
         self._output(message)
-        user_data = raw_input()
+        user_data = self._input()
         return user_data.trim()
 
     # pylint: disable=R0201
@@ -202,3 +202,11 @@ Please provide a value: """.format(self.name, self.value_type, summary_line,
         Just here for testing.
         """
         print message
+
+    # pylint: disable=R0201
+    def _input(self):
+        """
+        Just here for testing.
+        """
+        return raw_input()
+
