@@ -1,0 +1,4 @@
+---
+- hosts: cows
+  roles:
+  - cowstrap_java7

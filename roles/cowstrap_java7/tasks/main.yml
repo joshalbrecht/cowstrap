@@ -1,0 +1,20 @@
+---
+# Install Sun Java 7 JDK automatically.
+
+- name: add repository that conveniently mirrors the java installation
+  apt_repository: repo='ppa:webupd8team/java' state=present
+  
+- name: update apt cache and install the python wrappers necessary to automate the installation of java
+  apt: update_cache=yes
+  
+- name: automatically accept the license. By running this file, you must agree to it!
+  shell: echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && echo debconf shared/accepted-oracle-license-v1-1 seen true | debconf-set-selections
+  
+- name: install java 7
+  apt: pkg=oracle-java7-installer
+  
+- name: set JAVA_HOME correctly
+  lineinfile: dest=/etc/environment regexp=^JAVA_HOME= line=JAVA_HOME=/usr/lib/jvm/java-7-oracle
+  
+- name: set JAVA_HOME immediately
+  shell: export JAVA_HOME=/usr/lib/jvm/java-7-oracle/

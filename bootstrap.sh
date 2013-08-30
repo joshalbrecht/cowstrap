@@ -17,7 +17,7 @@ SCRIPT_NAME="cow.yml"
 #set the hostname:
 echo $HOSTNAME > /etc/hostname
 hostname $HOSTNAME
-grep $HOSTNAME /etc/hosts || echo "127.0.0.1 $HOSTNAME" >> /etc/hosts
+grep $HOSTNAME /etc/hosts || echo "[cows]\n127.0.0.1 $HOSTNAME" >> /etc/hosts
 
 #add the ansible ppa
 add-apt-repository -y ppa:rquillo/ansible
@@ -26,7 +26,7 @@ add-apt-repository -y ppa:rquillo/ansible
 apt-get update
 
 #install ansible and requirements
-apt-get install -y python-dev python-pip git ansible
+apt-get install -y python-dev python-pip git ansible python-apt python-pycurl
 
 #remove the weird default hosts file:
 echo " " > /etc/ansible/hosts
@@ -67,7 +67,9 @@ echo "StrictHostKeyChecking no" > /home/$USERNAME/.ssh/config
 #should obviously be able to log into himself:
 cat /home/$USERNAME/.ssh/id_rsa.pub >> /home/$USERNAME/.ssh/authorized_keys
 #and should obviously own their own files...
-chown cow:cow -vR /home/$USERNAME/.ssh
+chown $USERNAME:$USERNAME -vR /home/$USERNAME/.ssh
+#and should be able to ssh into root I guess (otherwise can't run ansible commandsd)
+cat /home/$USERNAME/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 
 #check out cowstrap
 ansible all -m git -a "repo=https://github.com/joshalbrecht/cowstrap.git dest=/etc/cowstrap" --sudo
