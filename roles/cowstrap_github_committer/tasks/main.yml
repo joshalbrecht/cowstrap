@@ -1,0 +1,15 @@
+---
+# configure common git and github settings
+
+- fail: msg="Bailing out because this task requires 'user_full_name' to be set to the user's first and last name"
+  when: user_full_name is not defined
+
+- fail: msg="Bailing out because this task requires 'user_email' to be set to the user's github email address"
+  when: user_email is not defined
+
+- name: set git author name
+  command: git config --global user.name "{{ user_full_name }}"
+
+- name: set git author email
+  command: git config --global user.email "{{ user_email }}"
+
