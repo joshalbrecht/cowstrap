@@ -1,0 +1,50 @@
+---
+#Set up remote desktop using nxnomachine
+
+- name: machine sure a desktop has been installed
+  apt: pkg=ubuntu-desktop install_recommends=no
+
+- name: check if the nx server is running.
+  command: /usr/NX/bin/nxserver --status
+  register: nx_server_status
+  ignore_errors: True
+
+- name: download 64bit deb for nxclient
+  command: wget http://web04.nomachine.com/download/3.5.0/Linux/nxclient_3.5.0-7_amd64.deb
+  when: nx_server_status|failed
+
+- name: install 64bit nxclient
+  command: dpkg -i nxclient_3.5.0-7_amd64.deb
+  when: nx_server_status|failed
+  
+- name: clean up after the installation
+  command: rm nxclient_3.5.0-7_amd64.deb
+  ignore_errors: True
+  
+- name: download 64bit deb for nxnode
+  command: wget http://web04.nomachine.com/download/3.5.0/Linux/nxnode_3.5.0-9_amd64.deb
+  when: nx_server_status|failed
+
+- name: install 64bit deb for nxnode
+  command: dpkg -i nxnode_3.5.0-9_amd64.deb
+  when: nx_server_status|failed
+
+- name: clean up after the installation
+  command: rm nxnode_3.5.0-9_amd64.deb
+  ignore_errors: True
+  
+- name: download 64bit deb for nxserver
+  command: wget http://web04.nomachine.com/download/3.5.0/Linux/FE/nxserver_3.5.0-11_amd64.deb
+  when: nx_server_status|failed
+
+- name: install 64bit deb for nxserver
+  command: dpkg -i nxserver_3.5.0-11_amd64.deb
+  when: nx_server_status|failed
+
+- name: clean up after the installation
+  command: rm nxserver_3.5.0-11_amd64.deb
+  ignore_errors: True
+  
+- name: enable password login via ssh for nxnomachine
+  lineinfile: dest=/etc/ssh/sshd_config regexp=^PasswordAuthentication line='PasswordAuthentication yes'
+  notify: restart sshd
