@@ -48,7 +48,7 @@ PASSWORD=$( python -c 'import os; import base64; print base64.b64encode(os.urand
 HASHED_PASSWORD=$( python -c "import crypt; print crypt.crypt(\"$PASSWORD\", \"$SALT\")" )
 
 #create a user
-ansible all -m user -a "name=$USERNAME generate_ssh_key=yes ssh_key_bits=2048 password=$HASHED_PASSWORD state=present" --sudo
+ansible all -m user -a "name=$USERNAME generate_ssh_key=yes ssh_key_bits=2048 password=$HASHED_PASSWORD state=present shell=/bin/bash" --sudo
 
 #create the group
 ansible all -m group -a "name=$USERNAME state=present" --sudo
