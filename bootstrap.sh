@@ -26,7 +26,7 @@ add-apt-repository -y ppa:rquillo/ansible
 apt-get update
 
 #install ansible and requirements
-apt-get install -y python-dev python-pip git ansible python-apt python-pycurl
+apt-get install -y python-dev python-pip git ansible python-apt python-pycurl curl
 
 #remove the weird default hosts file:
 echo " " > /etc/ansible/hosts
