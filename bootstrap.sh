@@ -74,7 +74,7 @@ chown $USERNAME:$USERNAME -vR /home/$USERNAME/.ssh
 cat /home/$USERNAME/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 
 #check out cowstrap
-ansible all -m git -a "repo=git@github.com:joshalbrecht/cowstrap.git dest=/etc/cowstrap" --sudo
+ansible all -m git -a "repo=https://github.com/joshalbrecht/cowstrap.git dest=/etc/cowstrap" --sudo
 
 #check out the project repository
 ansible all -m git -a "repo=$REPO_URL dest=/home/$USERNAME/$REPO" --user=$USERNAME
