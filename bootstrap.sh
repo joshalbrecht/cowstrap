@@ -57,6 +57,9 @@ ansible all -m group -a "name=$USERNAME state=present" --sudo
 usermod -a -G sudo $USERNAME
 usermod -a -G $USERNAME $USERNAME
 
+#TODO: actually, really this script should only run once, and it's an error if the key already exists, because we just generated it...
+#(that failure condition happens when you name two machines the same thing)
+
 #import the key into github if it doesnt exist
 GITHUB_KEY_NAME="$USERNAME on $HOSTNAME"
 curl -s -u "$GITHUB_USER:$GITHUB_PASSWORD" https://api.github.com/user/keys | /bin/grep "$GITHUB_KEY_NAME" || curl -s -d "{\"title\": \"$GITHUB_KEY_NAME\", \"key\": \"$( /bin/cat /home/$USERNAME/.ssh/id_rsa.pub )\"}" -u "$GITHUB_USER:$GITHUB_PASSWORD" https://api.github.com/user/keys
@@ -73,6 +76,7 @@ chown $USERNAME:$USERNAME -vR /home/$USERNAME/.ssh
 #and should be able to ssh into root I guess (otherwise can't run ansible commands)
 cat /home/$USERNAME/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 
+#NOTE: this is https instead of git because we dont have the right keys as root
 #check out cowstrap
 ansible all -m git -a "repo=https://github.com/joshalbrecht/cowstrap.git dest=/etc/cowstrap" --sudo
 
@@ -86,12 +90,14 @@ cat >/home/$USERNAME/ansible_hosts <<EOL
 EOL
 sudo chown $USERNAME:$USERNAME /home/$USERNAME/ansible_hosts
 
-#finally, run the cow.yml in the project as the user, with sudo privileges
-ansible-playbook /home/$USERNAME/$REPO/$SCRIPT_NAME
+#finally, run the cow.yml in the project as the user, with sudo privileges (if it exists
+if [ ! -f /home/$USERNAME/$REPO/$SCRIPT_NAME ]; then
+  ansible-playbook /home/$USERNAME/$REPO/$SCRIPT_NAME
+fi
 
 #TODO: generate a nice message to show the user with "here is how you log into the machine"
 #TODO: wrap this entire thing into a nice script that takes sensible arguments and does the entire flow
-
+echo "Here is your password: $PASSWORD"
 
 
 
