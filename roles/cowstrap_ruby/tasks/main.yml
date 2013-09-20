@@ -1,0 +1,33 @@
+---
+# Install and configure RVM for Ubuntu 12.04
+
+- name: install build stuff
+  apt: pkg=build-essential state=present
+
+- name: install git core
+  apt: pkg=git-core state=present
+
+- name: install curl
+  apt: pkg=curl state=present
+
+- name: test if rvm is properly installed yet
+  command: which rvm
+  register: rvm_status
+  ignore_errors: True
+
+- name: run rvm install script
+  shell: wget https://raw.github.com/wayneeseguin/rvm/9422baa72e6d456a551ae055ec1bae3e3b4a3820/binscripts/rvm-installer -O rvm_install.sh && chmod +x rvm_install.sh && bash -s stable rvm_installer.sh && echo '[[ -s "/home/cow/.rvm/scripts/rvm" ]] && source "/home/cow/.rvm/scripts/rvm"' >> /home/cow/.bashrc
+  when: rvm_status|failed
+
+- name: install ruby 1.9.3
+  shell: rvm install 1.9.3
+  when: rvm_status|failed
+
+- name: default to 1.9.3
+  shell: rvm use --default 1.9.3
+  when: rvm_status|failed
+
+- name: set stuff on login
+  shell: echo "\nsource ~/.profile" >> /home/cow/.bash_profile && echo "\nsource ~/.bashrc" >> /home/cow/.bash_profile
+  when: rvm_status|failed
+  

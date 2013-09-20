@@ -3,7 +3,7 @@
 
 ### CHROME ###
 - name: check if chrome is installed
-  command: which chrome
+  command: /usr/bin/google-chrome --version
   register: chrome_status
   ignore_errors: True
 
@@ -21,6 +21,7 @@
 
 - name: install chrome
   shell: dpkg -i google-chrome-stable_current_amd64.deb
+  when: chrome_status|failed
 
 ### SCREEN ###
 
@@ -33,5 +34,5 @@
 
 ### BETTER FONTS ###
 - name: install proggy fonts
-  shell: wget http://img.dafont.com/dl/?f=proggy_clean && unzip proggy_clean.zip && cp proggy_clean/ProggyClean* /usr/share/fonts/
+  shell: wget http://img.dafont.com/dl/?f=proggy_clean -O proggy_clean.zip && unzip proggy_clean.zip && mv ./ProggyClean* /usr/share/fonts/
 

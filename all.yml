@@ -1,8 +1,8 @@
 ---
 - hosts: cows
   roles:
-  - cowstrap_github_committer
-  - cowstrap_java7
   - cowstrap_remote_desktop
   - cowstrap_tools
   - cowstrap_ruby
+  - cowstrap_github_committer
+  - cowstrap_java7
