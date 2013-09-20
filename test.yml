@@ -1,4 +1,4 @@
 ---
 - hosts: cows
   roles:
-  - cowstrap_remote_desktop
+  - cowstrap_github_committer

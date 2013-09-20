@@ -1,0 +1,37 @@
+---
+#Install a bunch of useful, obviously required tools
+
+### CHROME ###
+- name: check if chrome is installed
+  command: which chrome
+  register: chrome_status
+  ignore_errors: True
+
+- name: install chrome xss dependency
+  apt: pkg=libxss1 state=present
+  when: chrome_status|failed
+
+- name: install chrome xdg dependency
+  apt: pkg=xdg-utils state=present
+  when: chrome_status|failed
+
+- name: download chrome
+  shell: wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+  when: chrome_status|failed
+
+- name: install chrome
+  shell: dpkg -i google-chrome-stable_current_amd64.deb
+
+### SCREEN ###
+
+- name: ensure screen has been installed
+  apt: pkg=screen state=present
+
+### UNZIP ###
+- name: ensure unzip has been installed
+  apt: pkg=unzip state=present
+
+### BETTER FONTS ###
+- name: install proggy fonts
+  shell: wget http://img.dafont.com/dl/?f=proggy_clean && unzip proggy_clean.zip && cp proggy_clean/ProggyClean* /usr/share/fonts/
+
