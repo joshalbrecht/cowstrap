@@ -17,7 +17,7 @@ SCRIPT_NAME="cow.yml"
 #set the hostname:
 echo $HOSTNAME > /etc/hostname
 hostname $HOSTNAME
-grep $HOSTNAME /etc/hosts || echo "[cows]\n127.0.0.1 $HOSTNAME" >> /etc/hosts
+grep "127.0.0.1 $HOSTNAME" /etc/hosts || echo "127.0.0.1 $HOSTNAME" >> /etc/hosts
 
 #add the ansible ppa
 add-apt-repository -y ppa:rquillo/ansible
