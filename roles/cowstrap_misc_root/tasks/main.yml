@@ -1,0 +1,20 @@
+---
+# A bunch of random tasks to run as root. To be split apart at a later time
+
+- name: install intellij from s3
+  shell: wget https://s3-us-west-2.amazonaws.com/vistatek-temp/packages/ideaIC-12.1.4.tar.gz && tar xzvf ideaIC-12.1.4.tar.gz && mv idea-IC-129.713 /usr/local/intellij-12 && ln -s /usr/local/intellij-12/bin/idea.sh /usr/bin/intellij && chmod +x /usr/bin/intellij creates=/usr/bin/intellij
+
+- name: fix intellij startup args
+  shell: ln -fs /home/cow/personal/settings/intellij/idea64.vmoptions /usr/local/intellij-12/bin/idea64.vmoptions
+
+- name: install sbt
+  shell: sbt --version || wget http://repo.scala-sbt.org/scalasbt/sbt-native-packages/org/scala-sbt/sbt//0.12.4/sbt.deb && dpkg -i sbt.deb
+
+- name: install requirements for blog
+  shell: jekyll -v || gem install rdoc && gem install jekyll
+
+- name: install java crypto extensions
+  shell: wget https://s3-us-west-1.amazonaws.com/joshalbrecht/packages/UnlimitedJCEPolicyJDK7.zip && unzip UnlimitedJCEPolicyJDK7.zip && cp /usr/lib/jvm/java-7-oracle/jre/lib/security/US_export_policy.jar /home/cow/original_US_export_policy.jar && cp /usr/lib/jvm/java-7-oracle/jre/lib/security/local_policy.jar /home/cow/original_local_policy.jar && mv UnlimitedJCEPolicy/*.jar /usr/lib/jvm/java-7-oracle/jre/lib/security/ creates=/home/cow/original_local_policy.jar
+  
+
+

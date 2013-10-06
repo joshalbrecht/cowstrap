@@ -19,6 +19,9 @@ echo $HOSTNAME > /etc/hostname
 hostname $HOSTNAME
 grep "127.0.0.1 $HOSTNAME" /etc/hosts || echo "127.0.0.1 $HOSTNAME" >> /etc/hosts
 
+#required to be able to call add-apt-repository:
+apt-get install -y python-software-properties
+
 #add the ansible ppa
 add-apt-repository -y ppa:rquillo/ansible
 

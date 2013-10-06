@@ -1,4 +1,4 @@
 ---
 - hosts: cows
   roles:
-  - cowstrap_misc
+  - cowstrap_misc_root

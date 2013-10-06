@@ -1,0 +1,37 @@
+---
+# A bunch of random tasks. To be split apart at a later time
+
+- fail: msg="Bailing out because this task requires 'access_key' to be set to the AWS access key"
+  when: access_key is not defined
+
+- fail: msg="Bailing out because this task requires 'secret_key' to be set to the AWS secret key"
+  when: secret_key is not defined
+  
+- fail: msg="Bailing out because this task requires 'bucket_name' to be set to the S3 bucket name"
+  when: bucket_name is not defined
+  
+- name: generate aws.conf
+  shell: echo 'aws {\n  access_key = "{{ access_key }}"\n  secret_key = "{{ secret_key }}"\n  bucket_name = "{{ bucket_name }}"\n}' > /home/cow/aws.conf
+
+
+  
+#NOTE:  could do some of this much more generically--maintain the same structure as the relevant part of the filesystem in your git repo, then auto-link
+
+- name: link screenrc to personal settings
+  shell: ln -fs /home/cow/personal/settings/screenrc /home/cow/.screenrc
+
+- name: link xmodmap to personal settings
+  shell: ln -fs /home/cow/personal/settings/xmodmap /home/cow/.Xmodmap
+  
+- name: configure proggy font
+  shell: ln -fs /home/cow/personal/settings/gconf.xml /home/cow/.gconf/apps/gnome-terminal/profiles/Default/%gconf.xml
+
+
+- name: checkout web page
+  git: repo=https://github.com/joshalbrecht/joshalbrecht.github.com.git dest=/home/cow/joshalbrecht.github.com
+  
+- name: checkout s3crate
+  git: repo=https://github.com/joshalbrecht/s3crate.git dest=/home/cow/s3crate
+  
+- name: download settings from s3
+  shell: cd /home/cow/ && wget https://s3-us-west-1.amazonaws.com/joshalbrecht/settings/intellij/exported_settings.jar
