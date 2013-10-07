@@ -28,10 +28,10 @@
 
 
 - name: checkout web page
-  git: repo=https://github.com/joshalbrecht/joshalbrecht.github.com.git dest=/home/cow/joshalbrecht.github.com
+  git: repo=git@github.com:joshalbrecht/joshalbrecht.github.com.git dest=/home/cow/joshalbrecht.github.com
   
 - name: checkout s3crate
-  git: repo=https://github.com/joshalbrecht/s3crate.git dest=/home/cow/s3crate
+  git: repo=git@github.com:joshalbrecht/s3crate.git dest=/home/cow/s3crate
   
 - name: download settings from s3
   shell: cd /home/cow/ && wget https://s3-us-west-1.amazonaws.com/joshalbrecht/settings/intellij/exported_settings.jar
