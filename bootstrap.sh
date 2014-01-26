@@ -94,7 +94,7 @@ EOL
 sudo chown $USERNAME:$USERNAME /home/$USERNAME/ansible_hosts
 
 #finally, run the cow.yml in the project as the user, with sudo privileges (if it exists
-if [ ! -f /home/$USERNAME/$REPO/$SCRIPT_NAME ]; then
+if [ -f /home/$USERNAME/$REPO/$SCRIPT_NAME ]; then
   ansible-playbook /home/$USERNAME/$REPO/$SCRIPT_NAME
 fi
 
